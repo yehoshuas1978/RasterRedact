@@ -1,0 +1,21 @@
+server:
+  port: ${OWLMASK_PDF_PORT:9070}
+  address: ${OWLMASK_PDF_HOST:0.0.0.0}
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: ${OWLMASK_PDF_MAX_INPUT_BYTES:26214400}
+      max-request-size: ${OWLMASK_PDF_MAX_REQUEST_BYTES:27262976}
+
+owlmask:
+  pdf:
+    auth-token: ${OWLMASK_PDF_AUTH_TOKEN:}
+    max-input-bytes: ${OWLMASK_PDF_MAX_INPUT_BYTES:26214400}
+    max-pages: ${OWLMASK_PDF_MAX_PAGES:200}
+    min-dpi: ${OWLMASK_PDF_MIN_DPI:72}
+    max-dpi: ${OWLMASK_PDF_MAX_DPI:300}
+    max-rendered-pixels: ${OWLMASK_PDF_MAX_RENDERED_PIXELS:250000000}
+    max-decoded-stream-bytes: ${OWLMASK_PDF_MAX_DECODED_STREAM_BYTES:536870912}
+    timeout-seconds: ${OWLMASK_PDF_TIMEOUT:120}
+    max-concurrency: ${OWLMASK_PDF_MAX_CONCURRENCY:2}

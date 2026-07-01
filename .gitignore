@@ -1,0 +1,19 @@
+# Maven build output
+target/
+
+# Java
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS / logs
+.DS_Store
+*.log
+
+# Local env
+.env
