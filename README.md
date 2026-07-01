@@ -48,8 +48,8 @@ owlmask-sdk (Python)                         owlmask-pdf (this service)
 
 ## API
 
-All endpoints except `GET /health` require `Authorization: Bearer <token>`
-(constant-time comparison). If no token is configured the service returns `503`.
+`POST /pdf/redact` requires `Authorization: Bearer <token>` (constant-time
+comparison). The service refuses to start without a sufficiently long token.
 
 ### `GET /health`
 Unauthenticated liveness probe.
@@ -99,7 +99,6 @@ Unauthenticated liveness probe.
 | Status | When |
 |---|---|
 | `401` | Missing/invalid bearer token. |
-| `503` | No auth token configured on the service. |
 | `422` | Redaction failed closed (hash mismatch, limit breach, bad geometry, verification failure, …). |
 | `400` | Malformed multipart / spec. |
 
@@ -133,9 +132,6 @@ curl -sS -X POST http://127.0.0.1:9070/pdf/redact \
   -o redacted.pdf -D -
 ```
 
-Interactive API docs (Swagger UI) are served at `/swagger-ui.html` and the
-OpenAPI schema at `/v3/api-docs` — both require the bearer token.
-
 ## Guarantees
 
 Every returned PDF is verified before the service responds; verification failure
@@ -145,7 +141,7 @@ returns `422` with no document. The engine asserts:
 - **No** AcroForm, document outline, open action, structure tree, XMP/metadata, or
   names dictionary survived.
 - Each requested region is **≥99% black** when the saved output is re-rendered
-  (pixel sampling — catches a mis-mapped bounding box; not a text-layer-only check).
+  (pixel sampling confirms that the requested rectangle survived save/reload).
 - `documentSha256` matches the uploaded bytes.
 
 ## Configuration
@@ -156,7 +152,7 @@ All settings come from environment variables (see `src/main/resources/applicatio
 |---|---|---|
 | `OWLMASK_PDF_HOST` | `0.0.0.0` | Bind address. **Keep on a private network only.** |
 | `OWLMASK_PDF_PORT` | `9070` | Bind port. |
-| `OWLMASK_PDF_AUTH_TOKEN` | (unset) | Shared bearer secret. **Required** — requests return `503` until set. |
+| `OWLMASK_PDF_AUTH_TOKEN` | (unset) | Shared bearer secret, at least 32 characters. **Required** — startup fails until set. |
 | `OWLMASK_PDF_MAX_INPUT_BYTES` | `26214400` (25 MB) | Max upload size. |
 | `OWLMASK_PDF_MAX_PAGES` | `200` | Max pages. |
 | `OWLMASK_PDF_MIN_DPI` / `OWLMASK_PDF_MAX_DPI` | `72` / `300` | Allowed render DPI range. |
@@ -179,11 +175,12 @@ Requires the `owlmask-share-pdf` module in your local Maven repo first:
 mvn -f ../owlmask-share/pom.xml install
 
 # 2a. Run from source
-OWLMASK_PDF_AUTH_TOKEN=change-me mvn spring-boot:run
+export OWLMASK_PDF_AUTH_TOKEN="$(openssl rand -hex 32)"
+mvn spring-boot:run
 
 # 2b. Or build and run the jar
 mvn clean package
-OWLMASK_PDF_AUTH_TOKEN=change-me java -jar target/owlmask-pdf-1.0.0-SNAPSHOT.jar
+java -jar target/owlmask-pdf-1.0.0-SNAPSHOT.jar
 
 # health check
 curl -s http://127.0.0.1:9070/health
@@ -198,7 +195,7 @@ so the build context must be the **workspace root** that contains both
 ```bash
 # run from the workspace root (the directory containing owlmask-share/ and owlmask-pdf/)
 docker build -f owlmask-pdf/Dockerfile -t owlmask-pdf .
-docker run --rm -p 127.0.0.1:9070:9070 -e OWLMASK_PDF_AUTH_TOKEN=change-me owlmask-pdf
+docker run --rm -p 127.0.0.1:9070:9070 -e OWLMASK_PDF_AUTH_TOKEN="$OWLMASK_PDF_AUTH_TOKEN" owlmask-pdf
 ```
 
 The image runs as a non-root user and exposes `9070`. In practice the service is
@@ -219,7 +216,7 @@ engine's own reconstruction / hash-binding / limit / rotated-crop tests live in
 ## Third-party
 
 See [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md). Runtime dependencies
-(Spring Boot, Apache PDFBox, SpringDoc) are permissively licensed; none impose
+(Spring Boot and Apache PDFBox) are permissively licensed; neither imposes
 copyleft obligations on this proprietary service.
 
 ---
