@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = {
-        "owlmask.pdf.auth-token=test-secret",
+        "owlmask.pdf.auth-token=test-secret-that-is-at-least-32-chars",
         "owlmask.pdf.max-input-bytes=10485760",
         "owlmask.pdf.max-pages=10",
         "owlmask.pdf.min-dpi=72",
@@ -73,7 +73,7 @@ class PdfRedactionControllerTest {
                 objectMapper.writeValueAsBytes(spec));
 
         mockMvc.perform(multipart("/pdf/redact").file(file).file(specPart)
-                        .header("Authorization", "Bearer test-secret")
+                        .header("Authorization", "Bearer test-secret-that-is-at-least-32-chars")
                         .accept(MediaType.APPLICATION_PDF))
                 .andExpect(status().isOk())
                 .andExpect(header().string("X-Redaction-Verified", "true"))

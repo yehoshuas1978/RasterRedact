@@ -2,12 +2,11 @@
 // Delegates all PDF processing to PdfRedactionService and returns verified bytes only.
 package com.susswein.owlmask.pdf.rest;
 
+import com.susswein.owlmask.pdf.config.PdfServiceProperties;
 import com.susswein.owlmask.pdf.dto.HealthResponse;
 import com.susswein.owlmask.pdf.service.PdfRedactionService;
 import com.susswein.owlmask.share.pdf.RedactSpec;
 import com.susswein.owlmask.share.pdf.RedactionResult;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,27 +19,30 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@Tag(name = "PDF Redaction", description = "Internal raster-first PDF redaction operations")
 public class PdfRedactionController {
 
     private final PdfRedactionService redactionService;
+    private final PdfServiceProperties properties;
 
-    public PdfRedactionController(PdfRedactionService redactionService) {
+    public PdfRedactionController(PdfRedactionService redactionService, PdfServiceProperties properties) {
         this.redactionService = redactionService;
+        this.properties = properties;
     }
 
     @GetMapping("/health")
-    @Operation(summary = "Check liveness", description = "Returns liveness without processing a document")
     public HealthResponse health() {
         return new HealthResponse("healthy", "owlmask-pdf");
     }
 
     @PostMapping(path = "/pdf/redact", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_PDF_VALUE)
-    @Operation(summary = "Redact a PDF", description = "Reconstructs a hash-bound PDF as verified image-only pages")
     public ResponseEntity<byte[]> redact(
             @RequestPart("file") MultipartFile file,
             @RequestPart("spec") RedactSpec spec) throws IOException {
+        if (file.isEmpty() || file.getSize() > properties.maxInputBytes()) {
+            throw new com.susswein.owlmask.share.pdf.PdfRedactionException(
+                    "PDF input size is outside the configured limit");
+        }
         RedactionResult result = redactionService.redact(file.getBytes(), spec);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
