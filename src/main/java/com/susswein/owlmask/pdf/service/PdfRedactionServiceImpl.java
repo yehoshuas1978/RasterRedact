@@ -29,7 +29,7 @@ public class PdfRedactionServiceImpl implements PdfRedactionService {
         this.properties = properties;
         this.redactor = new RasterPdfRedactor(new RedactionLimits(
                 properties.maxInputBytes(), properties.maxPages(), properties.minDpi(), properties.maxDpi(),
-                properties.maxRenderedPixels(), properties.maxDecodedStreamBytes()));
+                properties.maxRenderedPixels(), properties.maxDecodedStreamBytes(), properties.maxRegions()));
         int concurrency = Math.max(1, properties.maxConcurrency());
         this.executor = new ThreadPoolExecutor(concurrency, concurrency, 0, TimeUnit.MILLISECONDS,
                 new ArrayBlockingQueue<>(concurrency), new ThreadPoolExecutor.AbortPolicy());

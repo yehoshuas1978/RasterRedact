@@ -38,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "owlmask.pdf.max-dpi=150",
         "owlmask.pdf.max-rendered-pixels=50000000",
         "owlmask.pdf.max-decoded-stream-bytes=50000000",
+        "owlmask.pdf.max-regions=100",
         "owlmask.pdf.timeout-seconds=30",
         "owlmask.pdf.max-concurrency=1"
 })

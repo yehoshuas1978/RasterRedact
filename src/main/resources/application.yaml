@@ -17,5 +17,6 @@ owlmask:
     max-dpi: ${OWLMASK_PDF_MAX_DPI:300}
     max-rendered-pixels: ${OWLMASK_PDF_MAX_RENDERED_PIXELS:250000000}
     max-decoded-stream-bytes: ${OWLMASK_PDF_MAX_DECODED_STREAM_BYTES:536870912}
+    max-regions: ${OWLMASK_PDF_MAX_REGIONS:10000}
     timeout-seconds: ${OWLMASK_PDF_TIMEOUT:120}
     max-concurrency: ${OWLMASK_PDF_MAX_CONCURRENCY:2}

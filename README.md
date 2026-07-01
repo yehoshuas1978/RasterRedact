@@ -158,6 +158,7 @@ All settings come from environment variables (see `src/main/resources/applicatio
 | `OWLMASK_PDF_MIN_DPI` / `OWLMASK_PDF_MAX_DPI` | `72` / `300` | Allowed render DPI range. |
 | `OWLMASK_PDF_MAX_RENDERED_PIXELS` | `250000000` | Total rendered-pixel budget (`dpi × pages`). |
 | `OWLMASK_PDF_MAX_DECODED_STREAM_BYTES` | `536870912` (512 MB) | Decoded-stream budget. |
+| `OWLMASK_PDF_MAX_REGIONS` | `10000` | Maximum redaction rectangles per request. |
 | `OWLMASK_PDF_TIMEOUT` | `120` | Per-request wall-clock timeout (seconds). |
 | `OWLMASK_PDF_MAX_CONCURRENCY` | `2` | Concurrent redactions; excess is rejected (fail closed). |
 

@@ -13,6 +13,7 @@ public record PdfServiceProperties(
         int maxDpi,
         long maxRenderedPixels,
         long maxDecodedStreamBytes,
+        int maxRegions,
         int timeoutSeconds,
         int maxConcurrency
 ) {
@@ -22,7 +23,7 @@ public record PdfServiceProperties(
         }
         if (maxInputBytes <= 0 || maxPages <= 0 || minDpi <= 0 || maxDpi < minDpi
                 || maxRenderedPixels <= 0 || maxDecodedStreamBytes <= 0
-                || timeoutSeconds <= 0 || maxConcurrency <= 0) {
+                || maxRegions <= 0 || timeoutSeconds <= 0 || maxConcurrency <= 0) {
             throw new IllegalArgumentException("owlmask.pdf resource limits must be positive and internally consistent");
         }
     }
