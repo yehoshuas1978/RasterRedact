@@ -53,6 +53,20 @@
         </dependency>
     </dependencies>
 
+    <repositories>
+        <!-- Resolves com.susswein:owlmask-share-pdf. CI authenticates via the
+             matching <server id="github"> written by setup-java; local builds
+             normally use the workspace-installed SNAPSHOT from ~/.m2. -->
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages (owlmask-share)</name>
+            <url>https://maven.pkg.github.com/yehoshuas1978/owlmask-share</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <build>
         <plugins>
             <plugin>
