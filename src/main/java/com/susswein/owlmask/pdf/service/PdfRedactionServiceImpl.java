@@ -4,11 +4,13 @@ package com.susswein.owlmask.pdf.service;
 
 import com.susswein.owlmask.pdf.config.PdfServiceProperties;
 import com.susswein.owlmask.share.pdf.PdfRedactionException;
+import com.susswein.owlmask.share.pdf.PdfRedactor;
 import com.susswein.owlmask.share.pdf.RasterPdfRedactor;
 import com.susswein.owlmask.share.pdf.RedactSpec;
 import com.susswein.owlmask.share.pdf.RedactionLimits;
 import com.susswein.owlmask.share.pdf.RedactionResult;
 import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -21,15 +23,20 @@ import java.util.concurrent.TimeoutException;
 @Service
 public class PdfRedactionServiceImpl implements PdfRedactionService {
 
-    private final RasterPdfRedactor redactor;
+    private final PdfRedactor redactor;
     private final PdfServiceProperties properties;
     private final ThreadPoolExecutor executor;
 
+    @Autowired
     public PdfRedactionServiceImpl(PdfServiceProperties properties) {
-        this.properties = properties;
-        this.redactor = new RasterPdfRedactor(new RedactionLimits(
+        this(properties, new RasterPdfRedactor(new RedactionLimits(
                 properties.maxInputBytes(), properties.maxPages(), properties.minDpi(), properties.maxDpi(),
-                properties.maxRenderedPixels(), properties.maxDecodedStreamBytes(), properties.maxRegions()));
+                properties.maxRenderedPixels(), properties.maxDecodedStreamBytes(), properties.maxRegions())));
+    }
+
+    PdfRedactionServiceImpl(PdfServiceProperties properties, PdfRedactor redactor) {
+        this.properties = properties;
+        this.redactor = redactor;
         int concurrency = Math.max(1, properties.maxConcurrency());
         this.executor = new ThreadPoolExecutor(concurrency, concurrency, 0, TimeUnit.MILLISECONDS,
                 new ArrayBlockingQueue<>(concurrency), new ThreadPoolExecutor.AbortPolicy());
