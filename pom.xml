@@ -35,6 +35,14 @@
             <artifactId>owlmask-share-pdf</artifactId>
             <version>${owlmask-share.version}</version>
         </dependency>
+        <!-- Shared credential extraction and constant-time comparison.
+             Deliberately owlmask-share-security rather than owlmask-share: this
+             service must not pull in langchain4j for two small helpers. -->
+        <dependency>
+            <groupId>com.susswein</groupId>
+            <artifactId>owlmask-share-security</artifactId>
+            <version>${owlmask-share.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
