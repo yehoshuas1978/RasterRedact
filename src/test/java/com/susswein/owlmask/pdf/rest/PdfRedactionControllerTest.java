@@ -8,12 +8,14 @@ import com.susswein.owlmask.share.pdf.RedactSpec;
 import com.susswein.owlmask.share.pdf.RedactionMode;
 import com.susswein.owlmask.share.pdf.RedactionRegion;
 import com.susswein.owlmask.share.pdf.RedactionSource;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,10 +23,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -80,6 +88,40 @@ class PdfRedactionControllerTest {
                 .andExpect(header().string("X-Redaction-Verified", "true"))
                 .andExpect(header().string("X-Pages-Rasterized", "1"))
                 .andExpect(header().string("X-Regions-Applied", "1"));
+    }
+
+    @Test
+    void returnedBytesHaveNoRecoverableTextLayer() throws Exception {
+        // A 200 with correct headers proves nothing about the payload: this asserts the
+        // bytes actually handed to the caller carry no extractable text, no surviving
+        // document structure, and are not the uploaded file echoed back.
+        byte[] pdf = createPdf();
+        RedactionRegion region = new RedactionRegion(0, List.of(0.1, 0.1, 0.6, 0.3),
+                RedactionRegion.COORD_SPACE_V1, 612, 792, 0,
+                List.of(0.0, 0.0, 612.0, 792.0), RedactionSource.TEXT);
+        RedactSpec spec = new RedactSpec(PdfHash.sha256(pdf), RedactionMode.RASTER_ALL, 96, List.of(region));
+        MockMultipartFile file = new MockMultipartFile("file", "input.pdf", "application/pdf", pdf);
+        MockMultipartFile specPart = new MockMultipartFile("spec", "", "application/json",
+                objectMapper.writeValueAsBytes(spec));
+
+        MvcResult result = mockMvc.perform(multipart("/pdf/redact").file(file).file(specPart)
+                        .header("Authorization", "Bearer test-secret-that-is-at-least-32-chars")
+                        .accept(MediaType.APPLICATION_PDF))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        byte[] redacted = result.getResponse().getContentAsByteArray();
+        assertFalse(Arrays.equals(pdf, redacted), "service returned the uploaded PDF unchanged");
+        try (PDDocument output = Loader.loadPDF(redacted)) {
+            assertEquals(1, output.getNumberOfPages());
+            String text = new PDFTextStripper().getText(output);
+            assertTrue(text.isBlank(), "returned PDF still exposes a selectable text layer: " + text);
+            assertFalse(text.contains("123-45-6789"), "redacted value is recoverable from the response");
+            assertNull(output.getDocumentCatalog().getMetadata(),
+                    "returned PDF retained document metadata");
+            assertNull(output.getDocumentCatalog().getAcroForm(null),
+                    "returned PDF retained an AcroForm");
+        }
     }
 
     private byte[] createPdf() throws Exception {
