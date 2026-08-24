@@ -1,79 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <groupId>org.rasterredact</groupId>
+    <artifactId>raster-redact</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.14</version>
-        <relativePath/>
+        <version>3.4.1</version>
     </parent>
-    <groupId>com.susswein</groupId>
-    <artifactId>owlmask-pdf</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <name>owlmask-pdf</name>
-    <description>Private raster-first PDF redaction service for OwlMask.</description>
-    <inceptionYear>2026</inceptionYear>
-    <organization><name>Yehoshua Zev Susswein</name></organization>
-    <licenses>
-        <license>
-            <name>Proprietary — All Rights Reserved</name>
-            <distribution>manual</distribution>
-            <comments>Proprietary and confidential. See the LICENSE file.</comments>
-        </license>
-    </licenses>
 
     <properties>
         <java.version>21</java.version>
-        <owlmask-share.version>1.0.0-SNAPSHOT</owlmask-share.version>
+        <pdfbox.version>3.0.3</pdfbox.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>com.susswein</groupId>
-            <artifactId>owlmask-share-pdf</artifactId>
-            <version>${owlmask-share.version}</version>
-        </dependency>
-        <!-- Shared credential extraction and constant-time comparison.
-             Deliberately owlmask-share-security rather than owlmask-share: this
-             service must not pull in langchain4j for two small helpers. -->
-        <dependency>
-            <groupId>com.susswein</groupId>
-            <artifactId>owlmask-share-security</artifactId>
-            <version>${owlmask-share.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>${pdfbox.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <!-- PDFBox needs BouncyCastle to build the encrypted-PDF test fixture. -->
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.81</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-
-    <repositories>
-        <!-- Resolves com.susswein:owlmask-share-pdf. CI authenticates via the
-             matching <server id="github"> written by setup-java; local builds
-             normally use the workspace-installed SNAPSHOT from ~/.m2. -->
-        <repository>
-            <id>github</id>
-            <name>GitHub Packages (owlmask-share)</name>
-            <url>https://maven.pkg.github.com/yehoshuas1978/owlmask-share</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
 
     <build>
         <plugins>
